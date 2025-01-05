@@ -39,6 +39,7 @@ canvas.addEventListener("mousemove", (e) => {
 });
 
 canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
     const position = getPosition(e);
     drawing = true;
     x = position.x;
@@ -47,6 +48,7 @@ canvas.addEventListener("touchstart", (e) => {
 });
 
 canvas.addEventListener("touchend", () => {
+    e.preventDefault();
     drawing = false;
     ctx.beginPath();
 });
