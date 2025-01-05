@@ -10,10 +10,24 @@ let drawing = false;
 let x = 0;
 let y = 0;
 let color = "#000000";
+let isEraser = false;
 
 const colorPicker = document.getElementById("color-picker");
+const eraserButton = document.getElementById("eraser-button");
+
 colorPicker.addEventListener("input", (e) => {
     color = e.target.value;
+    isEraser = false;
+    eraserButton.textContent = "Eraser";
+});
+
+eraserButton.addEventListener("click", () => {
+    isEraser = !isEraser;
+    if (isEraser) {
+        eraserButton.textContent = "Drawing";
+    } else {
+        eraserButton.textContent = "Eraser";
+    }
 });
 
 canvas.addEventListener("mousedown", (e) => {
@@ -21,7 +35,7 @@ canvas.addEventListener("mousedown", (e) => {
     const position = getPosition(e);
     x = position.x;
     y = position.y;
-    socket.emit("start", { x, y, color });
+    socket.emit("start", { x, y, color, isEraser });
 });
 
 canvas.addEventListener("mouseup", () => {
@@ -32,8 +46,13 @@ canvas.addEventListener("mouseup", () => {
 canvas.addEventListener("mousemove", (e) => {
     if (!drawing) return;
     const position = getPosition(e);
-    drawLine(x, y, position.x, position.y, color);
-    socket.emit("draw", { x1: x, y1: y, x2: position.x, y2: position.y, color });
+    if (isEraser) {
+        eraseLine(x, y, position.x, position.y);
+        socket.emit("erase", { x1: x, y1: y, x2: position.x, y2: position.y });
+    } else {
+        drawLine(x, y, position.x, position.y, color);
+        socket.emit("draw", { x1: x, y1: y, x2: position.x, y2: position.y, color });
+    }
     x = position.x;
     y = position.y;
 });
@@ -44,20 +63,26 @@ canvas.addEventListener("touchstart", (e) => {
     drawing = true;
     x = position.x;
     y = position.y;
-    socket.emit("start", { x, y, color });
+    socket.emit("start", { x, y, color, isEraser });
 });
 
-canvas.addEventListener("touchend", () => {
+canvas.addEventListener("touchend", (e) => {
     e.preventDefault();
     drawing = false;
     ctx.beginPath();
 });
 
 canvas.addEventListener("touchmove", (e) => {
+    e.preventDefault();
     if (!drawing) return;
     const position = getPosition(e);
-    drawLine(x, y, position.x, position.y, color);
-    socket.emit("draw", { x1: x, y1: y, x2: position.x, y2: position.y, color });
+    if (isEraser) {
+        eraseLine(x, y, position.x, position.y);
+        socket.emit("erase", { x1: x, y1: y, x2: position.x, y2: position.y });
+    } else {
+        drawLine(x, y, position.x, position.y, color);
+        socket.emit("draw", { x1: x, y1: y, x2: position.x, y2: position.y, color });
+    }
     x = position.x;
     y = position.y;
 });
@@ -65,6 +90,16 @@ canvas.addEventListener("touchmove", (e) => {
 function drawLine(x1, y1, x2, y2, color = "black") {
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+}
+
+function eraseLine(x1, y1, x2, y2) {
+    ctx.strokeStyle = "#FFFFFF";
+    ctx.lineWidth = 20;
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(x1, y1);
@@ -88,10 +123,14 @@ function getPosition(event) {
 }
 
 socket.on("start", (data) => {
-    ctx.strokeStyle = data.color;
+    ctx.strokeStyle = data.isEraser ? "#FFFFFF" : data.color;
     ctx.moveTo(data.x, data.y);
 });
 
 socket.on("draw", (data) => {
     drawLine(data.x1, data.y1, data.x2, data.y2, data.color);
+});
+
+socket.on("erase", (data) => {
+    eraseLine(data.x1, data.y1, data.x2, data.y2);
 });
