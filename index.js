@@ -18,7 +18,9 @@ io.on("connection", (socket) => {
     socket.on("draw", (data) => {
         socket.broadcast.emit("draw", data);
     });
-
+    socket.on('clearCanvas', () => {
+        socket.broadcast.emit('clearCanvas');
+    });
     socket.on("disconnect", () => {
         console.log("A user disconnected");
     });

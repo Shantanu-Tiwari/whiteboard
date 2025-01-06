@@ -14,6 +14,7 @@ let isEraser = false;
 
 const colorPicker = document.getElementById("color-picker");
 const eraserButton = document.getElementById("eraser-button");
+const clearButton = document.getElementById("clear-button");
 
 colorPicker.addEventListener("input", (e) => {
     color = e.target.value;
@@ -28,6 +29,11 @@ eraserButton.addEventListener("click", () => {
     } else {
         eraserButton.textContent = "Eraser";
     }
+});
+
+clearButton.addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    socket.emit("clearCanvas");
 });
 
 canvas.addEventListener("mousedown", (e) => {
@@ -133,4 +139,8 @@ socket.on("draw", (data) => {
 
 socket.on("erase", (data) => {
     eraseLine(data.x1, data.y1, data.x2, data.y2);
+});
+
+socket.on("clearCanvas", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 });
