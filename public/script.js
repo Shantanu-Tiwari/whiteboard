@@ -11,16 +11,29 @@ let x = 0;
 let y = 0;
 let color = "#000000";
 let isEraser = false;
+let backColor = "#FFFFFF";
 
 const colorPicker = document.getElementById("color-picker");
 const eraserButton = document.getElementById("eraser-button");
 const clearButton = document.getElementById("clear-button");
+const saveButton = document.getElementById("save-button");
+const bgColor = document.getElementById("background-color");
 
 colorPicker.addEventListener("input", (e) => {
     color = e.target.value;
     isEraser = false;
     eraserButton.textContent = "Eraser";
 });
+
+bgColor.addEventListener("input", (e)=>{
+    backColor = e.target.value;
+    setBackgroundColor(backColor);
+})
+
+function setBackgroundColor(color){
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
 
 eraserButton.addEventListener("click", () => {
     isEraser = !isEraser;
@@ -35,6 +48,14 @@ clearButton.addEventListener("click", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     socket.emit("clearCanvas");
 });
+
+saveButton.addEventListener("click", ()=>{
+    const imageURL = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.href = imageURL;
+    link.download = "drawing.png";
+    link.click();
+})
 
 canvas.addEventListener("mousedown", (e) => {
     drawing = true;
