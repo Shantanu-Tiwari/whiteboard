@@ -5,11 +5,14 @@ const socketIo = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+let liveUsers = 0;
+
 
 app.use(express.static("public"));
 
 io.on("connection", (socket) => {
-    console.log("A user connected");
+    liveUsers++;
+    io.emit("userCount", liveUsers);
 
     socket.on("start", (data) => {
         socket.broadcast.emit("start", data);
@@ -22,7 +25,8 @@ io.on("connection", (socket) => {
         socket.broadcast.emit('clearCanvas');
     });
     socket.on("disconnect", () => {
-        console.log("A user disconnected");
+        liveUsers--;
+        io.emit("userCount", liveUsers);
     });
 });
 

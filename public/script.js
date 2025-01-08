@@ -18,6 +18,7 @@ const eraserButton = document.getElementById("eraser-button");
 const clearButton = document.getElementById("clear-button");
 const saveButton = document.getElementById("save-button");
 const bgColor = document.getElementById("background-color");
+const userCountDisplay = document.getElementById("live-users");
 
 colorPicker.addEventListener("input", (e) => {
     color = e.target.value;
@@ -148,6 +149,10 @@ function getPosition(event) {
         };
     }
 }
+
+socket.on("userCount", (count) => {
+    userCountDisplay.textContent = `Live Users: ${count}`;
+})
 
 socket.on("start", (data) => {
     ctx.strokeStyle = data.isEraser ? "#FFFFFF" : data.color;
